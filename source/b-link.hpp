@@ -130,7 +130,7 @@ class BLinkTree {
 	}
 
 
-	void insert(const data_type& value) {
+	bool insert(const data_type& value) {
 
 		int medio = B / 2;
 
@@ -138,8 +138,12 @@ class BLinkTree {
 			root = new NodeBLink<data_type>();
 			Node<data_type> nuevo(value);
 			root->valores.insert(nuevo);
+
 		}
 		else {
+
+			bool encontrado = search(value);
+			if (encontrado) { std::cout << "Ya insertado valor: "<<value<<"\n"; return 0; }
 
 			NodeBLink<data_type>* viajero = root;
 
@@ -255,8 +259,9 @@ class BLinkTree {
 				}
 				cont++;
 
-			}std::cout << "Size V: " << viajero->valores.size() << "\n";
+			}
 		}std::cout << "Insertado valor: " << value << "\n";
+		return 1;
 	}
 
 	void remove(const data_type& value) {}
