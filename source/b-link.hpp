@@ -70,7 +70,44 @@ class BLinkTree {
 
 	~BLinkTree() {}
 
-	std::size_t size() const {}
+	std::size_t size() const {
+
+		size_t tam = 0;
+
+		if (!root) { return 0; }
+		else {
+
+			NodeBLink<data_type>* viajero = root;
+
+			std::queue<NodeBLink<data_type>*> cola;
+			cola.push(viajero);
+			bool colaP = 1;
+
+			while (!cola.empty()) {
+				NodeBLink<data_type>* temp = cola.front();
+				auto iter = temp->valores.begin();
+
+				if(iter->l == NULL){
+					viajero = temp;
+					
+					while(viajero->right){
+						tam += viajero->valores.size();
+						viajero = viajero->right;
+					}
+					tam += viajero->valores.size();
+
+					cola.pop();
+				}
+				else{
+					cola.push(iter->l);
+					cola.pop();
+				}
+			}
+		}
+
+		return tam;
+	}
+
 
 	bool empty() const {
 		
@@ -142,8 +179,8 @@ class BLinkTree {
 		}
 		else {
 
-			bool encontrado = search(value);
-			if (encontrado) { std::cout << "Ya insertado valor: "<<value<<"\n"; return 0; }
+			//bool encontrado = search(value);
+			//if (encontrado) { std::cout << "Ya insertado valor: "<<value<<"\n"; return 0; }
 
 			NodeBLink<data_type>* viajero = root;
 
@@ -185,6 +222,7 @@ class BLinkTree {
 			}
 
 
+
 			Node<data_type> nuevo(value);
 			viajero->valores.insert(nuevo);
 
@@ -224,6 +262,15 @@ class BLinkTree {
 					prev->parent = viajero->parent = nueva_raiz;
 					this->root = nueva_raiz;
 
+					prev->right = viajero;
+					if(viajero->left == NULL){
+						viajero->left = prev;
+					}
+					else{
+						prev->left = viajero->left;
+						viajero->left->right = prev;
+						viajero->left = prev;
+					}
 
 				}
 				else {
@@ -274,6 +321,16 @@ class BLinkTree {
 						}
 					}
 
+					prev->right = viajero;
+					if(viajero->left == NULL){
+						viajero->left = prev;
+					}
+					else{
+						prev->left = viajero->left;
+						viajero->left->right = prev;
+						viajero->left = prev;
+					}
+
 
 					viajero = viajero->parent;
 
@@ -288,8 +345,6 @@ class BLinkTree {
 	void remove(const data_type& value) {}
 
  private:
-	data_type* data_;
-
 	NodeBLink<data_type>* root;
 
 };
