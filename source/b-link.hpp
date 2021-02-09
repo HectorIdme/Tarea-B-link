@@ -184,6 +184,7 @@ class BLinkTree {
 		
 			}
 
+
 			Node<data_type> nuevo(value);
 			viajero->valores.insert(nuevo);
 
@@ -198,8 +199,14 @@ class BLinkTree {
 					auto it = viajero->valores.begin();
 					Node<data_type> copia(it->getVal(), it->getL(), it->getR());
 					prev->valores.insert(copia);
+
+					if (cont > 0) {
+						it->getL()->parent = it->getR()->parent = prev;
+					}
+
 					viajero->valores.erase(it->value);
 					contador_medio++;
+
 				}
 
 				int valorM = 0;
@@ -215,29 +222,40 @@ class BLinkTree {
 					Node<data_type> nodo_nueva_raiz(valorM, prev, viajero);
 					nueva_raiz->valores.insert(nodo_nueva_raiz);
 					prev->parent = viajero->parent = nueva_raiz;
-					root = nueva_raiz;
+					this->root = nueva_raiz;
+
+
 				}
 				else {
 					NodeBLink<data_type>* parentTemp = viajero->parent;
 					Node<data_type> nodo_nueva_padre(valorM, prev, viajero);
 					parentTemp->valores.insert(nodo_nueva_padre);
 
+                    NodeBLink<data_type>* viajero_aux = viajero;
+                    NodeBLink<data_type>* prev_aux = prev;
+
+                    prev_aux->parent = viajero_aux->parent = parentTemp;
+
 					auto iterR = parentTemp->valores.begin();
 					if (iterR->value == valorM) {
 						auto tempIR = iterR;
 						tempIR++;
-						Node<data_type> nodo_nuevo(tempIR->getVal(), viajero, tempIR->getR());
+						Node<data_type> nodo_nuevo(tempIR->getVal(), viajero_aux, tempIR->getR());
 						parentTemp->valores.erase(tempIR->getVal());
 						parentTemp->valores.insert(nodo_nuevo);
+
+                        //tempIR->getR()->parent = viajero_aux->parent = parentTemp;
 					}
 					else {
 						for (; iterR != parentTemp->valores.end(); iterR++) {
 							auto tempIR = iterR;
 							tempIR++;
 							if (tempIR->value == valorM) {
-								Node<data_type> nodo_nuevo(iterR->getVal(), iterR->getL(), prev);
+								Node<data_type> nodo_nuevo(iterR->getVal(), iterR->getL(), prev_aux);
 								parentTemp->valores.erase(iterR->getVal());
 								parentTemp->valores.insert(nodo_nuevo);
+
+                                //iterR->getL()->parent = prev_aux->parent = parentTemp;
 								break;
 							}
 						}
@@ -245,11 +263,14 @@ class BLinkTree {
 						iterR = parentTemp->valores.begin();
 						for (; iterR->value != valorM; iterR++) {}
 						iterR++;
+                        viajero_aux = viajero;
 
 						if (iterR != parentTemp->valores.end()) {
-							Node<data_type> nodo_nuevo(iterR->getVal(), viajero, iterR->getR());
+							Node<data_type> nodo_nuevo(iterR->getVal(), viajero_aux, iterR->getR());
 							parentTemp->valores.erase(iterR->getVal());
 							parentTemp->valores.insert(nodo_nuevo);
+
+                            //iterR->getR()->parent = viajero_aux->parent = parentTemp;
 						}
 					}
 
