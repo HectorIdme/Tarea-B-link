@@ -6,6 +6,8 @@
 #include <set>
 #include <iostream>
 #include <queue>
+#include <mutex> 
+#include <condition_variable>
 
 namespace EDA {
 	namespace Concurrent {
@@ -121,13 +123,34 @@ namespace EDA {
 				else {
 
 					NodeBLink<data_type>* viajero = root;
-
 					std::queue<NodeBLink<data_type>*> cola;
 					cola.push(viajero);
 					bool colaP = 1;
 
 					while (!cola.empty() && colaP) {
 						NodeBLink<data_type>* temp = cola.front();
+						
+						m.lock();
+
+
+						/////verificando y para reubicar con b-link/////
+
+						auto iterHIGH = temp->valores.end();
+						iterHIGH--;
+						Type valueHIGH = iterHIGH->value;
+						auto iterLOW = temp->valores.begin();
+						Type valueLOW = iterLOW->value;
+
+						if(value >= valueLOW && value <= valueHIGH){}
+						else if(value > valueHIGH){
+							if(temp->right){temp = temp->right;}
+						}
+						else{
+							if(temp->left){temp = temp->left;}
+						}
+
+						///
+
 						auto iter = temp->valores.begin();
 
 						for (; iter != temp->valores.end(); iter++) {
@@ -145,6 +168,7 @@ namespace EDA {
 								}
 							}
 						}
+
 						if (iter == temp->valores.end()) {
 							iter--;
 							if (iter->r == NULL) {
@@ -154,15 +178,17 @@ namespace EDA {
 							else {
 								cola.push(iter->r);
 								cola.pop();
+
 							}
 						}
 
+						m.unlock();
 					}
-
+					
 					bool res = viajero->valores.count(value);
-					if (res) { std::cout << "encontrado valor: " << value << "\n"; return 1; }
-					else { std::cout << "no encontrado valor: " << value << "\n"; return 0; }
-
+					if (res) { std::cout << "+++ encontrado valor: " << value << "\n"; return 1; }
+					else { std::cout << "--- no encontrado valor: " << value << "\n"; return 0; }
+					
 				}
 			}
 
@@ -178,9 +204,6 @@ namespace EDA {
 
 				}
 				else {
-
-					bool encontrado = search(value);
-					if (encontrado) { std::cout << "Ya insertado valor: " << value << "\n"; return 0; }
 
 					NodeBLink<data_type>* viajero = root;
 
@@ -222,6 +245,7 @@ namespace EDA {
 					}
 
 
+					mu.lock();
 
 					Node<data_type> nuevo(value);
 					viajero->valores.insert(nuevo);
@@ -291,7 +315,7 @@ namespace EDA {
 								parentTemp->valores.erase(tempIR->getVal());
 								parentTemp->valores.insert(nodo_nuevo);
 
-								//tempIR->getR()->parent = viajero_aux->parent = parentTemp;
+
 							}
 							else {
 								for (; iterR != parentTemp->valores.end(); iterR++) {
@@ -302,7 +326,6 @@ namespace EDA {
 										parentTemp->valores.erase(iterR->getVal());
 										parentTemp->valores.insert(nodo_nuevo);
 
-										//iterR->getL()->parent = prev_aux->parent = parentTemp;
 										break;
 									}
 								}
@@ -317,7 +340,7 @@ namespace EDA {
 									parentTemp->valores.erase(iterR->getVal());
 									parentTemp->valores.insert(nodo_nuevo);
 
-									//iterR->getR()->parent = viajero_aux->parent = parentTemp;
+
 								}
 							}
 
@@ -338,7 +361,10 @@ namespace EDA {
 						cont++;
 
 					}
-				}std::cout << "Insertado valor: " << value << "\n";
+					mu.unlock();
+
+
+				} //std::cout << "*** insertado valor: " << value << "\n";
 				return 1;
 			}
 
@@ -346,6 +372,8 @@ namespace EDA {
 
 		private:
 			NodeBLink<data_type>* root;
+			mutable std::mutex mu;
+			mutable std::mutex m;
 
 		};
 
