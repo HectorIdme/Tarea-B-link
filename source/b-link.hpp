@@ -187,7 +187,7 @@ namespace EDA {
 					while (!cola.empty() && colaP) {
 						NodeBLink<data_type>* temp = cola.front();
 						
-						m.lock();
+						mu.lock();
 						
 						/////verificando y para reubicar con b-link/////
 
@@ -237,7 +237,7 @@ namespace EDA {
 							}
 						}
 
-						m.unlock();
+						mu.unlock();
 					}
 					
 					bool res = viajero->valores.count(value);
@@ -520,7 +520,6 @@ namespace EDA {
 		private:
 			NodeBLink<data_type>* root;
 			mutable std::mutex mu;
-			mutable std::mutex m;
 
 		};
 
