@@ -70,7 +70,88 @@ namespace EDA {
 
 			BLinkTree() { root = NULL; }
 
-			~BLinkTree() {}
+			~BLinkTree() {
+
+				NodeBLink<data_type>* viajero = root;
+				NodeBLink<data_type>* viajero2;
+				bool giro = 1;
+				bool destruye = 0;
+
+				std::queue<NodeBLink<data_type>*> cola;
+				cola.push(viajero);
+
+				while (!cola.empty()) {
+					NodeBLink<data_type>* temp = cola.front();
+					auto iter = temp->valores.begin();
+					
+					if(destruye){
+						viajero = temp;
+						cola.pop();
+						if(giro){
+							while (viajero->right) {
+								viajero2 = viajero;
+								viajero = viajero->right;
+								delete viajero2;
+							}
+							if(viajero->parent){
+								viajero2 = viajero;
+								viajero = viajero->parent;
+								delete viajero2;
+								giro = 0;
+								cola.push(viajero);
+							}
+							else{
+								delete viajero;
+							}
+						}
+						else{
+							while (viajero->left) {
+								viajero2 = viajero;
+								viajero = viajero->left;
+								delete viajero2;
+							}
+							if(viajero->parent){
+								viajero2 = viajero;
+								viajero = viajero->parent;
+								delete viajero2;
+								giro = 1;
+								cola.push(viajero);
+							}
+							else{
+								delete viajero;
+							}
+						}		
+					}
+
+					else if (iter->l == NULL) {
+						viajero = temp;
+						cola.pop();
+						if(giro){
+							while (viajero->right) {
+								viajero2 = viajero;
+								viajero = viajero->right;
+								delete viajero2;
+							}
+							if(viajero->parent){
+								viajero2 = viajero;
+								viajero = viajero->parent;
+								delete viajero2;
+								giro = 0;
+								cola.push(viajero);
+							}
+							else{
+								delete viajero;
+							}destruye = 1;
+						}
+					}
+					else {
+						cola.push(iter->l);
+						cola.pop();
+					}
+				}
+				root = NULL;
+
+			}
 
 			std::size_t size() const {
 
@@ -83,7 +164,6 @@ namespace EDA {
 
 					std::queue<NodeBLink<data_type>*> cola;
 					cola.push(viajero);
-					bool colaP = 1;
 
 					while (!cola.empty()) {
 						NodeBLink<data_type>* temp = cola.front();
