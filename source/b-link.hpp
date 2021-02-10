@@ -75,7 +75,6 @@ namespace EDA {
 				NodeBLink<data_type>* viajero = root;
 				NodeBLink<data_type>* viajero2;
 				bool giro = 1;
-				bool destruye = 0;
 
 				std::queue<NodeBLink<data_type>*> cola;
 				cola.push(viajero);
@@ -83,8 +82,8 @@ namespace EDA {
 				while (!cola.empty()) {
 					NodeBLink<data_type>* temp = cola.front();
 					auto iter = temp->valores.begin();
-					
-					if(destruye){
+
+					if (iter->l == NULL) {
 						viajero = temp;
 						cola.pop();
 						if(giro){
@@ -103,6 +102,7 @@ namespace EDA {
 							else{
 								delete viajero;
 							}
+							
 						}
 						else{
 							while (viajero->left) {
@@ -114,34 +114,12 @@ namespace EDA {
 								viajero2 = viajero;
 								viajero = viajero->parent;
 								delete viajero2;
-								giro = 1;
-								cola.push(viajero);
-							}
-							else{
-								delete viajero;
-							}
-						}		
-					}
-
-					else if (iter->l == NULL) {
-						viajero = temp;
-						cola.pop();
-						if(giro){
-							while (viajero->right) {
-								viajero2 = viajero;
-								viajero = viajero->right;
-								delete viajero2;
-							}
-							if(viajero->parent){
-								viajero2 = viajero;
-								viajero = viajero->parent;
-								delete viajero2;
 								giro = 0;
 								cola.push(viajero);
 							}
 							else{
 								delete viajero;
-							}destruye = 1;
+							}
 						}
 					}
 					else {
@@ -149,15 +127,14 @@ namespace EDA {
 						cola.pop();
 					}
 				}
-				root = NULL;
-
+				
 			}
 
 			std::size_t size() const {
 
 				size_t tam = 0;
 
-				if (!root) { return 0; }
+				if (!root) { return tam; }
 				else {
 
 					NodeBLink<data_type>* viajero = root;
@@ -211,12 +188,10 @@ namespace EDA {
 						NodeBLink<data_type>* temp = cola.front();
 						
 						m.lock();
-
-
+						
 						/////verificando y para reubicar con b-link/////
 
-						auto iterHIGH = temp->valores.end();
-						iterHIGH--;
+						auto iterHIGH = temp->valores.rbegin();
 						Type valueHIGH = iterHIGH->value;
 						auto iterLOW = temp->valores.begin();
 						Type valueLOW = iterLOW->value;
@@ -250,13 +225,13 @@ namespace EDA {
 						}
 
 						if (iter == temp->valores.end()) {
-							iter--;
-							if (iter->r == NULL) {
+							auto iter2 = temp->valores.rbegin();
+							if (iter2->r == NULL) {
 								viajero = temp;
 								colaP = 0;
 							}
 							else {
-								cola.push(iter->r);
+								cola.push(iter2->r);
 								cola.pop();
 
 							}
@@ -311,13 +286,13 @@ namespace EDA {
 							}
 						}
 						if (iter == temp->valores.end()) {
-							iter--;
-							if (iter->r == NULL) {
+							auto iter2 = temp->valores.rbegin();
+							if (iter2->r == NULL) {
 								viajero = temp;
 								colaP = 0;
 							}
 							else {
-								cola.push(iter->r);
+								cola.push(iter2->r);
 								cola.pop();
 							}
 						}
@@ -441,6 +416,7 @@ namespace EDA {
 						cont++;
 
 					}
+
 					mu.unlock();
 
 
@@ -448,7 +424,98 @@ namespace EDA {
 				return 1;
 			}
 
-			void remove(const data_type& value) {}
+			bool remove(const data_type& value) {
+
+				if (!root) {return 0;}
+				else {
+
+					if(!search(value)){
+						return 0;
+					}
+
+					NodeBLink<data_type>* viajero = root;
+
+					std::queue<NodeBLink<data_type>*> cola;
+					cola.push(viajero);
+					bool colaP = 1;
+
+					while (!cola.empty() && colaP) {
+						NodeBLink<data_type>* temp = cola.front();
+						auto iter = temp->valores.begin();
+
+						for (; iter != temp->valores.end(); iter++) {
+							if (iter->value > value) {
+								if (iter->l == NULL) {
+									viajero = temp;
+									colaP = 0;
+									cola.pop();
+									break;
+								}
+								else {
+									cola.push(iter->l);
+									cola.pop();
+									break;
+								}
+							}
+						}
+						if (iter == temp->valores.end()) {
+							auto iter2 = temp->valores.rbegin();
+							if (iter2->r == NULL) {
+								viajero = temp;
+								colaP = 0;
+							}
+							else {
+								cola.push(iter2->r);
+								cola.pop();
+							}
+						}
+
+					}
+
+					if(viajero->parent){
+
+						auto viajero2 = viajero->parent;
+						bool res = viajero2->valores.count(value);
+
+						auto raiz = root;
+						bool res2 = raiz->valores.count(value);
+						if(res2){
+
+						}
+
+						else if(res){
+							if(viajero->valores.size() > 1){
+								auto it = viajero->valores.begin();
+								for(;it->value != value; it++){}
+								viajero->valores.erase(it->value);
+							}
+							else{
+
+							}
+
+						}
+						else if(res == 0){
+							if(viajero->valores.size() > 1){
+								auto it = viajero->valores.begin();
+								for(;it->value != value; it++){}
+								viajero->valores.erase(it->value);
+							}
+							else{
+
+							}
+						}
+
+					}
+					else{
+						
+						auto it = viajero->valores.begin();
+						for(;it->value != value; it++){}
+						viajero->valores.erase(it->value);
+					}	
+
+				}
+				return 1;
+			}
 
 		private:
 			NodeBLink<data_type>* root;
